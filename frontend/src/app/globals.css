@@ -1,0 +1,237 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --ink: #0d0d0d;
+  --ink-2: #161616;
+  --ink-3: #222222;
+  --ink-4: #333333;
+  --chalk: #fcfbfa;      /* Made lighter for better main text contrast */
+  --chalk-muted: #d5cfc9; /* Much lighter for secondary text readability */
+  --chalk-faint: #98928d; /* Much brighter than the old #5a5450 so small text is readable */
+  --rule-dark: #3a3a3a;
+  --red-ink: #e34c41;     /* Pop brighter red */
+  --red-dark: #b1251c;
+  --amber-ink: #f0952d;
+  --green-ink: #2b9d62;
+  --blue-ink: #2b6bf0;
+  --paper: #f5f0e8;
+  --paper-2: #ede8de;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--ink);
+  color: var(--chalk);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 16px;      /* Bumped to 16px from 15px */
+  line-height: 1.65;    /* Slightly more breathing room */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--ink-4); }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+::selection { background: var(--red-ink); color: white; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes ticker {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up    { animation: fadeUp 0.45s ease both; }
+.animate-fade-in    { animation: fadeIn 0.3s ease both; }
+.animate-spin       { animation: spin 0.9s linear infinite; }
+.animate-pulse-dot  { animation: pulseDot 1.8s ease-in-out infinite; }
+.animate-ticker     { animation: ticker 0.25s ease both; }
+
+.stagger-1 { animation-delay: 0.04s; }
+.stagger-2 { animation-delay: 0.08s; }
+.stagger-3 { animation-delay: 0.12s; }
+.stagger-4 { animation-delay: 0.16s; }
+.stagger-5 { animation-delay: 0.20s; }
+.stagger-6 { animation-delay: 0.24s; }
+
+/* ── Panel system ── */
+.panel {
+  background: var(--ink-2);
+  border: 1px solid var(--rule-dark);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--rule-dark);
+}
+
+.panel-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.panel-body { padding: 20px; }
+
+/* ── Input ── */
+.input-field {
+  width: 100%;
+  background: var(--ink-3);
+  border: 1px solid var(--ink-4);
+  border-radius: 2px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: var(--chalk);
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-field::placeholder { color: var(--chalk-faint); }
+.input-field:focus { border-color: var(--red-ink); }
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--red-ink);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  padding: 11px 24px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-primary:hover:not(:disabled) { background: #bc2e24; }
+.btn-primary:active:not(:disabled) { background: var(--red-dark); }
+.btn-primary:disabled {
+  background: var(--ink-3);
+  color: var(--chalk-faint);
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--chalk-muted);
+  border: 1px solid var(--rule-dark);
+  border-radius: 2px;
+  padding: 8px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-ghost:hover { border-color: var(--chalk-muted); color: var(--chalk); }
+.btn-ghost.active {
+  border-color: var(--red-ink);
+  color: var(--red-ink);
+  background: rgba(212, 55, 44, 0.06);
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 1px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ── Shimmer ── */
+.shimmer {
+  background: linear-gradient(90deg, var(--ink-2) 25%, var(--ink-3) 50%, var(--ink-2) 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 2px;
+}
+
+/* ── Accent bars ── */
+.bar-red   { border-left: 2px solid var(--red-ink); }
+.bar-green { border-left: 2px solid var(--green-ink); }
+.bar-amber { border-left: 2px solid var(--amber-ink); }
+
+/* ── Dividers ── */
+.rule { height: 1px; background: var(--rule-dark); }
+
+/* ── Live dot ── */
+.live-dot {
+  width: 6px; height: 6px;
+  background: var(--green-ink);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ── Noise overlay ── */
+.noise-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Dot grid ── */
+.dot-grid {
+  background-image: radial-gradient(circle, #222 1px, transparent 1px);
+  background-size: 20px 20px;
+}

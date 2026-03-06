@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+*.log
+backend_log.txt
+uvicorn_test.log
+server.log
+backend_startup*.log
+fonts/*.ttf
+!fonts/DejaVuSansCondensed*.ttf
