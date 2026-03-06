@@ -1,187 +1,111 @@
-# Lexo — AI-Powered Multilingual News Bias Detector
+# Newsroom Lens: Advanced Media Bias Analytical Pipeline
 
-Lexo analyzes news articles for hidden bias, political leaning, and sentiment manipulation. Paste a URL, raw text, or upload a PDF — Lexo extracts the content, detects the language, translates if needed, then runs a multi-model pipeline to surface exactly *where* and *how* the article is biased.
+Newsroom Lens is a high-fidelity media intelligence platform engineered to identify linguistic bias, political inclination, and sentiment manipulation in modern news reporting. By processing URLs, raw text, or digital documents, the system executes a multi-stage analytical pipeline to quantify editorial slant and surface hidden framing.
 
-Built for hackathon judging. Runs entirely on consumer hardware (RTX 3050, 16 GB RAM).
-
----
-
-## What It Does
-
-| Step | What happens | Model / tool |
-|------|-------------|--------------|
-| **Extract** | Pulls article text from URL, pasted text, or PDF | newspaper3k + trafilatura + readability-lxml + PyMuPDF |
-| **Language** | Detects language (38+ languages) | lingua-language-detector |
-| **Translate** | Translates non-English articles to English | NLLB-200-distilled-600M (local, on GPU) |
-| **Sentiment** | Headline vs. body sentiment comparison, sensationalism flag | HuggingFace sentiment pipeline (local) |
-| **Bias classify** | Detects bias types: political, racial, gender, socioeconomic, etc. | d4data/bias-detection-model (local) |
-| **Political lean** | Left / Center / Right classification | matous-volf/political-leaning-politics (local) |
-| **Bias evidence** | Sentence-level bias extraction with confidence scores | Same bias model, per-sentence |
-| **Entity framing** | Maps named entities to their bias associations | GLiNER NER + bias cross-reference |
-| **Bias index** | 0–100 composite score (type signal + political extremity + sentiment gap + entity framing + density) | Custom weighted formula |
-| **Summarize** | 5-bullet key point summary | Groq API — llama-3.1-8b-instant |
-| **Neutral rewrite** | Rewrites the top 3 most biased sentences in neutral language | Groq API — llama-3.1-8b-instant |
-| **Compare** | Side-by-side bias analysis of two articles on the same topic | Full pipeline x2, delta computation |
+The architecture is optimized for efficient inference on consumer-grade hardware, utilizing a hybrid model of local transformer execution and cloud-based large language model (LLM) processing.
 
 ---
 
-## Architecture
+## Analytical Pipeline
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Frontend — Next.js 14 / React 18 / Tailwind CSS    │
-│  Editorial data-journalism aesthetic                 │
-│  localhost:3000                                      │
-└──────────────────────┬──────────────────────────────┘
-                       │ HTTP (axios, FormData)
-┌──────────────────────▼──────────────────────────────┐
-│  Backend — FastAPI / Uvicorn                         │
-│  localhost:8000                                      │
-│                                                      │
-│  Services (sequenced for 6 GB VRAM):                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
-│  │ Language  │→ │Translate │→ │Sentiment │           │
-│  │ (lingua) │  │(NLLB-200)│  │(pipeline)│           │
-│  └──────────┘  └──┬───────┘  └──────────┘           │
-│                   │ unload                            │
-│  ┌──────────┐  ┌──▼───────┐  ┌──────────┐           │
-│  │  Bias    │→ │ Entities │→ │Bias Index│            │
-│  │(d4data)  │  │ (GLiNER) │  │(compute) │           │
-│  └──────────┘  └──────────┘  └──┬───────┘           │
-│                                 │ unload all          │
-│  ┌──────────┐  ┌──────────┐    │                     │
-│  │ Summary  │← │ Rewrite  │← ──┘                    │
-│  │(Groq API)│  │(Groq API)│                          │
-│  └──────────┘  └──────────┘                          │
-└──────────────────────────────────────────────────────┘
-```
-
-Models are loaded and unloaded in sequence to fit within 6 GB VRAM. HuggingFace transformers models run first, get fully unloaded (`del model + torch.cuda.empty_cache()`), then Groq API handles summarization and rewrites.
+| Pipeline Stage | Functionality | Technology Stack |
+|----------------|---------------|------------------|
+| **Extraction**  | Article retrieval from URLs, text, or PDFs | Trafilatura, Readability-lxml, PyMuPDF |
+| **Language**    | Automatic detection of 38+ languages | Lingua Language Detector |
+| **Translation** | Bidirectional translation for non-English sources | Google Gemini 1.5 Flash API |
+| **Sentiment**   | Comparison of headline vs. body sentiment | DeBERTa Multilingual Sentiment (Local) |
+| **Bias Analysis**| Categorization of bias types (Political, Nationalistic, etc.) | ModernBERT Bias Classifier (Local) |
+| **Political Lean**| Context-aware political leaning detection | Groq API - Llama 3.1 8B |
+| **Entity Mapping**| Scoring bias associated with specific entities | GLiNER NER + Custom Cross-Reference |
+| **Bias Index**  | 0-100 score based on weighted metrics | Custom Analytical Formula |
+| **Fact Checking**| Extraction and verification of core factual claims | Groq API |
+| **Neutrality**  | Automated generation of neutral summaries and rewrites | Groq API |
 
 ---
 
-## Frontend Design
+## Infrastructure and Design
 
-No glassmorphism. No gradients. Editorial data-journalism aesthetic inspired by Reuters Graphics, The Pudding, and NYT Interactive.
+The application follows a decoupled architecture designed for efficiency and speed:
 
-- **Background**: `#0d0d0d` (near-black)
-- **Typography**: Syne (headings), DM Sans (body), DM Mono (data labels)
-- **Accent**: `#d4372c` (ink-red)
-- **Corners**: Sharp (0px border-radius)
-- **Panels**: Bias gauge, evidence sentences, entity-bias graph, sentiment comparison, neutral rewrites
+- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS. The interface utilizes a high-contrast editorial aesthetic inspired by modern data journalism.
+- **Backend**: FastAPI with Uvicorn, implementing a sequenced pipeline to manage VRAM usage.
+- **Inference Strategy**: Local Transformer models are utilized for fast, privacy-focused classification, while high-latency reasoning tasks are offloaded to Groq and Gemini APIs.
+
+### Interface Specifications
+- **Typography**: Syne (Headings), DM Sans (Body), DM Mono (Technical labels).
+- **Core Aesthetic**: Dark mode interface (#0D0D0D) with high-visibility accents (#D4372C).
+- **Deployment**: Integrated start script for simultaneous backend and frontend execution.
 
 ---
 
-## Setup
+## Installation and Setup
 
 ### Prerequisites
-
 - Python 3.12
-- Node.js 18+
-- NVIDIA GPU with 6+ GB VRAM (or CPU-only with longer inference times)
-- Groq API key (free tier works)
+- Node.js 18 or higher
+- NVIDIA GPU with 6GB+ VRAM (Recommended for local model performance)
+- Valid API Keys for Groq and Google Gemini
 
-### Backend
+### Configuration
+1. Navigate to the `backend` directory.
+2. Create a `.env` file with the following environment variables:
+   ```env
+   GROQ_API_KEY=your_groq_key_here
+   GEMINI_API_KEY=your_gemini_key_here
+   ```
 
+### Execution
+Use the provided `start.bat` file in the root directory to launch both services automatically:
 ```bash
-cd backend
-
-# Install dependencies
-py -3.12 -m pip install -r requirements.txt
-
-# Upgrade transformers and gliner (required)
-py -3.12 -m pip install transformers==5.3.0 gliner==0.2.25
-
-# Start server
-py -3.12 -m uvicorn main:app --host 0.0.0.0 --port 8000
+./start.bat
 ```
 
-### Frontend
+Alternatively, launch manually:
 
+**Backend Service:**
+```bash
+cd backend
+pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+**Frontend Service:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open **http://localhost:3000** in your browser.
+The application will be accessible at **http://localhost:3000**.
 
 ---
 
-## Usage
+## Usage Patterns
 
-1. **URL tab** — paste a news article URL. Some sites (NDTV, paywalled outlets) block automated scraping; if you get a 422, switch to the Text tab.
-2. **Text tab** — paste article text directly. Most reliable input method.
-3. **PDF tab** — upload a PDF news article or report.
-4. **Compare tab** — enter two article URLs to compare bias side-by-side.
-
----
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/analyze` | Analyze a single article (URL, text, or PDF) |
-| `POST` | `/api/compare` | Compare two articles by URL |
-| `GET`  | `/docs` | Interactive API docs (Swagger UI) |
+- **URL Analysis**: Analyze live news articles directly via their web address. Note that some domains with aggressive anti-scraping measures may require the use of the Text tab.
+- **Direct Text**: Paste article content for the most consistent analysis results.
+- **PDF Extraction**: Process digital documents or archived news reports.
+- **Comparative Analysis**: Input two URLs covering the same event to contrast editorial differences and framing side-by-side.
+- **Export**: Generate comprehensive PDF reports of the analysis for local archiving.
 
 ---
 
-## Key Technical Decisions
+## System Architecture Details
 
-- **VRAM sequencing**: Models are loaded/unloaded in strict sequence rather than kept resident. This lets the full pipeline run on a 6 GB GPU.
-- **Groq for generation**: Local Ollama models failed on the installed version (0.17.6). Groq's `llama-3.1-8b-instant` is used for summarization and neutral rewrites — fast, free tier, and reliable.
-- **Composite bias index**: Weighted formula combining 5 signals (bias type confidence, political extremity, headline-body sentiment gap, entity framing ratio, biased sentence density) into a single 0–100 score.
-- **Graceful degradation**: Every pipeline step has try/except. If GLiNER fails, entity mapping returns `[]`. If Groq fails, summaries return fallback text. The pipeline never crashes.
+The backend implements strict model sequencing. Local models (Sentiment, Bias, NER) are loaded into VRAM only when needed and forcefully unloaded thereafter to maintain a low hardware footprint. High-level summarization and rewrite tasks are performed via API to ensure rapid response times and global political context awareness.
 
----
-
-## Project Structure
-
+### Project Structure
 ```
 Hack/
 ├── backend/
-│   ├── main.py                  # FastAPI app, CORS, routers
-│   ├── requirements.txt
-│   ├── models/
-│   │   └── schemas.py           # Pydantic models
-│   ├── routers/
-│   │   ├── analyze.py           # POST /api/analyze
-│   │   └── compare.py           # POST /api/compare
-│   └── services/
-│       ├── extractor.py         # URL/text extraction
-│       ├── pdf_extractor.py     # PDF extraction
-│       ├── language.py          # Language detection
-│       ├── translator.py        # NLLB translation
-│       ├── summarizer.py        # Groq summarization + rewrite
-│       ├── sentiment.py         # Sentiment analysis
-│       ├── bias.py              # Bias classification + evidence
-│       └── entities.py          # GLiNER entity-bias mapping
+│   ├── main.py                  # API definitions and middleware
+│   ├── .env                     # Private configuration (Excluded from Git)
+│   ├── routers/                 # API endpoint handlers
+│   └── services/                # Core AI and data processing logic
 ├── frontend/
-│   ├── package.json
-│   ├── tailwind.config.ts
-│   └── src/
-│       ├── app/
-│       │   ├── layout.tsx
-│       │   ├── globals.css
-│       │   └── page.tsx
-│       ├── components/
-│       │   ├── InputPanel.tsx
-│       │   ├── BiasPanel.tsx
-│       │   ├── EvidencePanel.tsx
-│       │   ├── EntityGraph.tsx
-│       │   ├── SummaryPanel.tsx
-│       │   ├── SentimentPanel.tsx
-│       │   ├── NeutralRewritePanel.tsx
-│       │   └── CompareView.tsx
-│       └── lib/
-│           ├── types.ts
-│           └── api.ts
-└── README.md
+│   ├── src/app/                 # Next.js pages and styles
+│   ├── src/components/          # Modular UI components
+│   └── src/lib/                 # API client and type definitions
+├── start.bat                    # Integrated launch script
+└── README.md                    # System documentation
 ```
-
----
-
-## Team
-
-**Lexo** — built at hackathon, March 2026.
